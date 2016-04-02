@@ -1,0 +1,46 @@
+-- CreaCBLight
+-- Romain VINDERS - 2322
+
+-- CREATION DES TABLES ---------------------------------------------------------
+
+-- effacer tables et utilitaires s'en servant (si existants)
+--DROP TRIGGER BACKUP_INSERTED_REVIEWS;
+--DROP PACKAGE BACKUP_PACKAGE;
+--DROP PACKAGE LOG_PACKAGE;
+--DROP SEQUENCE LOG_MESSAGES_SEQ;
+--DROP TABLE LOG_MESSAGES CASCADE CONSTRAINTS;
+--DROP TABLE USER_REVIEWS CASCADE CONSTRAINTS;
+--DROP SEQUENCE USERS_SEQ;
+--DROP TABLE USERS CASCADE CONSTRAINTS;
+
+-- créer table des utilisateurs
+CREATE TABLE USERS
+(
+    IdUser      INTEGER       CONSTRAINT USERS_PK           PRIMARY KEY,
+    Login       VARCHAR2(30) CONSTRAINT USERS_LOGIN_U      UNIQUE
+                             CONSTRAINT USERS_LOGIN_NN     NOT NULL,
+    SyncToken   CHAR(1) DEFAULT 0 CONSTRAINT USERS_SYNCTOKEN_NN NOT NULL
+);
+CREATE SEQUENCE USERS_SEQ; -- séquence d'autoincrémentation d'ID
+--ALTER SEQUENCE USERS_SEQ INCREMENT BY 1000000000; -- pour CBB uniquement
+--DECLARE
+--  v_dummy INTEGER;
+--BEGIN
+--  v_dummy := USERS_SEQ.NEXTVAL;
+--END;
+--ALTER SEQUENCE USERS_SEQ INCREMENT BY 1;
+
+-- créer table des avis/cotes
+CREATE TABLE USER_REVIEWS
+(
+    IdUser      INTEGER       CONSTRAINT USER_REVIEWS_IDUSER_FK    REFERENCES USERS(IdUser) ON DELETE CASCADE,
+    IdMovie     NUMBER(6),       -- contrainte ajoutée plus tard
+    ReviewDate  TIMESTAMP     DEFAULT CURRENT_TIMESTAMP 
+                              CONSTRAINT USER_REVIEWS_DATEEVAL_NN  NOT NULL,
+    Rating      INTEGER       CONSTRAINT USER_REVIEWS_RATING_NN    NOT NULL
+                              CONSTRAINT USER_REVIEWS_RATING_CH    CHECK(Rating >= 0 AND Rating <= 10),
+    Review      VARCHAR2(200),
+    SyncToken   CHAR(1)       DEFAULT 0 
+                              CONSTRAINT USER_REVIEWS_SYNCTOKEN_NN NOT NULL,
+    CONSTRAINT USER_REVIEWS_PK PRIMARY KEY(IdUser, IdMovie)
+);

@@ -1,0 +1,666 @@
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package sgbdrennequinepolis;
+
+import java.sql.CallableStatement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Array;
+import java.sql.Date;
+import java.sql.ResultSetMetaData;
+import java.sql.Struct;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.UIManager;
+import oracle.jdbc.OracleTypes;
+import oracle.sql.ARRAY;
+import oracle.sql.ArrayDescriptor;
+import oracle.sql.STRUCT;
+import oracle.sql.StructDescriptor;
+
+/**
+ *
+ * @author Romain
+ */
+public class Rennequinepolis extends javax.swing.JFrame
+{    
+    //private Statement _statement = null;
+    private DefaultListModel _actorModel = new DefaultListModel();
+    private HashMap<String,String> _actors = null;    
+    private DefaultListModel _directorModel = new DefaultListModel();
+    private HashMap<String,String> _directors = null;
+    private DefaultListModel _resultsModel = new DefaultListModel();
+    private HashMap<String,Integer> _results = null;
+
+
+    /**
+     * Creates new form Rennequinepolis
+     */
+    public Rennequinepolis()
+    {
+        initComponents();
+        jRadioSeekId.setSelected(true);
+        _actors = new HashMap<String,String>();
+        _directors = new HashMap<String,String>();
+        jActorList.setModel(_actorModel);
+        jDirectorList.setModel(_directorModel);
+        _results = new HashMap<String,Integer>();
+        jResultsList.setModel(_resultsModel);
+    }
+    
+    // RECHERCHE DE FILMS
+    private void findMovies(String title, String year, String yearMin, String yearMax)
+    {
+        try
+        {
+            // connexion
+            LoginSingleton.getInstance().startConnection();
+            // requête
+            ResultSet rs = LoginSingleton.getInstance().findMoviesRequest(title, year, yearMin, yearMax, _actors, _directors);
+            
+            // lister résultats
+            int count = 0;
+            while (rs.next() && count < 30)
+            {
+                count++;
+                
+                if (rs.getString(3) != null)
+                {
+                    String textVal = (String)rs.getString(2) + " (" + rs.getString(3) + ")";
+                     _results.put(textVal, Integer.parseInt(rs.getString(1)));
+                    _resultsModel.addElement(textVal);
+                }
+                else
+                {
+                    _results.put((String)rs.getString(2), Integer.parseInt(rs.getString(1)));
+                    _resultsModel.addElement((String)rs.getString(2));
+                }
+            }
+            if (count == 0)
+            {
+                jErrorLabel.setText("Aucun film trouvé selon ces critères...");
+            }
+            // fermeture
+            LoginSingleton.getInstance().endCallStatement();
+        }
+        catch(SQLException sqlExc) // ERREURS SQL
+        {
+            System.out.println("exception SQL : " + sqlExc.getErrorCode());
+            if (LoginSingleton.getInstance().checkCrash(sqlExc) == true)
+                findMovies(title, year, yearMin, yearMax);
+            else
+                jErrorLabel.setText(sqlExc.toString());
+        }
+        catch(Exception exc)
+        {
+            jErrorLabel.setText(exc.toString());
+        }
+    }
+    
+    // OBTENTION DE FILM SELON ID
+    private void getMovie(Integer idMovie)
+    { 
+        try
+        {
+            // connexion
+            LoginSingleton.getInstance().startConnection();
+            // requête
+            Struct data = LoginSingleton.getInstance().getMovieRequest(idMovie);
+            // affichage dans une fenetre
+            if (data != null)
+            {
+                DialogMovie dialog = new DialogMovie(new javax.swing.JFrame(), true, data);
+                dialog.setVisible(true);
+            }
+            else
+            {
+                jErrorLabel.setText("Aucun film trouvé avec cet identifiant...");
+            }           
+        }
+        catch(SQLException sqlExc) // ERREURS SQL
+        {
+            System.out.println("exception SQL : " + sqlExc.getErrorCode());
+            if (LoginSingleton.getInstance().checkCrash(sqlExc) == true)
+                getMovie(idMovie);
+            else
+                jErrorLabel.setText(sqlExc.toString());
+        }
+        catch(Exception exc)
+        {
+            jErrorLabel.setText(exc.toString());
+        }
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents()
+    {
+
+        jErrorLabel = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jResultsList = new javax.swing.JList();
+        jLabel2 = new javax.swing.JLabel();
+        jRadioSeekId = new javax.swing.JRadioButton();
+        jRadioSeekText = new javax.swing.JRadioButton();
+        jBtnSearch = new javax.swing.JButton();
+        jSpinId = new javax.swing.JSpinner();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        jLabel5 = new javax.swing.JLabel();
+        jSpinYear = new javax.swing.JSpinner();
+        jSpinYearMin = new javax.swing.JSpinner();
+        jSpinYearMax = new javax.swing.JSpinner();
+        jCheckMin = new javax.swing.JCheckBox();
+        jCheckMax = new javax.swing.JCheckBox();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jActorList = new javax.swing.JList();
+        jBtnAddActor = new javax.swing.JButton();
+        jBtnRemoveActor = new javax.swing.JButton();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        jDirectorList = new javax.swing.JList();
+        jBtnAddDirector = new javax.swing.JButton();
+        jBtnRemoveDirector = new javax.swing.JButton();
+        jDirectorText = new javax.swing.JTextField();
+        jActorText = new javax.swing.JTextField();
+        jTitleText = new javax.swing.JTextField();
+        jCheckYearVal = new javax.swing.JCheckBox();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Rennequinepolis");
+
+        jErrorLabel.setForeground(new java.awt.Color(204, 0, 51));
+        jErrorLabel.setText("-");
+
+        jLabel1.setFont(new java.awt.Font("Tahoma", 1, 12)); // NOI18N
+        jLabel1.setText("Rechercher un film");
+
+        jResultsList.addMouseListener(new java.awt.event.MouseAdapter()
+        {
+            public void mouseReleased(java.awt.event.MouseEvent evt)
+            {
+                jResultsListMouseReleased(evt);
+            }
+        });
+        jScrollPane1.setViewportView(jResultsList);
+
+        jLabel2.setForeground(new java.awt.Color(80, 80, 80));
+        jLabel2.setText("Titre");
+
+        jRadioSeekId.setForeground(new java.awt.Color(51, 51, 51));
+        jRadioSeekId.setText("Rechercher identifiant");
+        jRadioSeekId.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jRadioSeekIdActionPerformed(evt);
+            }
+        });
+
+        jRadioSeekText.setForeground(new java.awt.Color(51, 51, 51));
+        jRadioSeekText.setText("Recherche avancée");
+        jRadioSeekText.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jRadioSeekTextActionPerformed(evt);
+            }
+        });
+
+        jBtnSearch.setText("Rechercher");
+        jBtnSearch.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jBtnSearchActionPerformed(evt);
+            }
+        });
+
+        jSpinId.setModel(new javax.swing.SpinnerNumberModel(Integer.valueOf(1), Integer.valueOf(1), null, Integer.valueOf(1)));
+
+        jLabel3.setForeground(new java.awt.Color(80, 80, 80));
+        jLabel3.setText("Année");
+
+        jLabel4.setForeground(new java.awt.Color(80, 80, 80));
+        jLabel4.setText("Acteur(s)");
+
+        jLabel5.setForeground(new java.awt.Color(80, 80, 80));
+        jLabel5.setText("Directeur(s)");
+
+        jSpinYear.setModel(new javax.swing.SpinnerNumberModel(2000, 1880, 2016, 1));
+
+        jSpinYearMin.setModel(new javax.swing.SpinnerNumberModel(1880, 1880, 2016, 1));
+
+        jSpinYearMax.setModel(new javax.swing.SpinnerNumberModel(2015, 1880, 2016, 1));
+
+        jCheckMin.setForeground(new java.awt.Color(80, 80, 80));
+        jCheckMin.setText("Supérieure à");
+        jCheckMin.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jCheckMinActionPerformed(evt);
+            }
+        });
+
+        jCheckMax.setForeground(new java.awt.Color(80, 80, 80));
+        jCheckMax.setText("Inférieure à");
+        jCheckMax.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jCheckMaxActionPerformed(evt);
+            }
+        });
+
+        jScrollPane2.setViewportView(jActorList);
+
+        jBtnAddActor.setText("Ajouter");
+        jBtnAddActor.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jBtnAddActorActionPerformed(evt);
+            }
+        });
+
+        jBtnRemoveActor.setText("Retirer");
+        jBtnRemoveActor.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jBtnRemoveActorActionPerformed(evt);
+            }
+        });
+
+        jScrollPane3.setViewportView(jDirectorList);
+
+        jBtnAddDirector.setText("Ajouter");
+        jBtnAddDirector.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jBtnAddDirectorActionPerformed(evt);
+            }
+        });
+
+        jBtnRemoveDirector.setText("Retirer");
+        jBtnRemoveDirector.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jBtnRemoveDirectorActionPerformed(evt);
+            }
+        });
+
+        jCheckYearVal.setForeground(new java.awt.Color(80, 80, 80));
+        jCheckYearVal.setText("Égale à");
+        jCheckYearVal.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                jCheckYearValActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(23, 23, 23)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jBtnSearch, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 315, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jRadioSeekId)
+                                .addGap(18, 18, 18)
+                                .addComponent(jSpinId, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jErrorLabel, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addGap(21, 21, 21)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                                .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 54, Short.MAX_VALUE)
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(jTitleText, javax.swing.GroupLayout.PREFERRED_SIZE, 275, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addGroup(layout.createSequentialGroup()
+                                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                        .addComponent(jCheckMax)
+                                                        .addComponent(jCheckYearVal))
+                                                    .addGap(18, 18, 18)
+                                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                        .addComponent(jSpinYearMax, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                        .addComponent(jSpinYear, javax.swing.GroupLayout.PREFERRED_SIZE, 63, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                                .addGroup(layout.createSequentialGroup()
+                                                    .addGap(101, 101, 101)
+                                                    .addComponent(jSpinYearMin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                                .addComponent(jCheckMin))
+                                            .addGap(0, 0, Short.MAX_VALUE))
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(jLabel4)
+                                                .addComponent(jLabel5))
+                                            .addGap(28, 28, 28)
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addGroup(layout.createSequentialGroup()
+                                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED))
+                                                .addGroup(layout.createSequentialGroup()
+                                                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                                                    .addGap(6, 6, 6)))
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                    .addComponent(jBtnRemoveActor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                    .addComponent(jBtnAddActor, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                    .addComponent(jActorText))
+                                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                    .addComponent(jBtnRemoveDirector, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                    .addComponent(jBtnAddDirector, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                    .addComponent(jDirectorText, javax.swing.GroupLayout.PREFERRED_SIZE, 69, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jRadioSeekText, javax.swing.GroupLayout.Alignment.LEADING))
+                                    .addGap(0, 0, Short.MAX_VALUE))))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel1)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jRadioSeekId)
+                    .addComponent(jSpinId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addComponent(jRadioSeekText)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(jTitleText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jSpinYear, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckYearVal)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jSpinYearMin, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckMin))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jSpinYearMax, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckMax))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel4)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addComponent(jActorText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 11, Short.MAX_VALUE)
+                        .addComponent(jBtnAddActor)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jBtnRemoveActor)))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel5)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 81, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jDirectorText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jBtnAddDirector)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jBtnRemoveDirector)))
+                        .addGap(11, 11, 11)
+                        .addComponent(jBtnSearch)
+                        .addGap(27, 27, 27)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jErrorLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+
+        pack();
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void jBtnSearchActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jBtnSearchActionPerformed
+    {//GEN-HEADEREND:event_jBtnSearchActionPerformed
+        // TODO add your handling code here:
+        jErrorLabel.setText("");
+        _results.clear();
+        _resultsModel.clear();
+        LoginSingleton login = LoginSingleton.getInstance();
+        login.setSecondaryServer(false);
+        
+        // obtention de film
+        if (jRadioSeekId.isSelected())
+        {
+            getMovie((Integer)jSpinId.getValue());
+        }
+        // recherche de films
+        else
+        {
+            String valTitle = jTitleText.getText();
+            if (valTitle.isEmpty())
+                valTitle = null;
+
+            String year = null;
+            String yearMin = null;
+            String yearMax = null;
+            if (jCheckYearVal.isSelected())
+            {
+                year = jSpinYear.getValue().toString();
+            }
+            else
+            {
+                if (jCheckMin.isSelected())
+                    yearMin = jSpinYearMin.getValue().toString();
+                if (jCheckMax.isSelected())
+                    yearMax = jSpinYearMax.getValue().toString();
+            }
+
+            if (valTitle == null && year == null && yearMin == null && yearMax == null && _actors.size() == 0 && _directors.size() == 0)
+                jErrorLabel.setText("Aucun critère complété...");
+            else
+                findMovies(valTitle, year, yearMin, yearMax);
+        }
+    }//GEN-LAST:event_jBtnSearchActionPerformed
+
+    private void jBtnAddActorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jBtnAddActorActionPerformed
+    {//GEN-HEADEREND:event_jBtnAddActorActionPerformed
+        // TODO add your handling code here:
+        String val = jActorText.getText().trim();
+        if (!val.isEmpty() && _actors.get(val) == null)
+        {
+            _actors.put(val, val);
+            _actorModel.addElement(val);
+        }
+    }//GEN-LAST:event_jBtnAddActorActionPerformed
+
+    private void jBtnRemoveActorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jBtnRemoveActorActionPerformed
+    {//GEN-HEADEREND:event_jBtnRemoveActorActionPerformed
+        // TODO add your handling code here:
+        if (jActorList.getSelectedValue() != null)
+        {
+            _actors.remove(jActorList.getSelectedValue().toString());
+            _actorModel.remove(jActorList.getSelectedIndex()); 
+        }
+    }//GEN-LAST:event_jBtnRemoveActorActionPerformed
+
+    private void jBtnAddDirectorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jBtnAddDirectorActionPerformed
+    {//GEN-HEADEREND:event_jBtnAddDirectorActionPerformed
+        // TODO add your handling code here:
+        String val = jDirectorText.getText().trim();
+        if (!val.isEmpty() && _directors.get(val) == null)
+        {
+            _directors.put(val, val);
+            _directorModel.addElement(val); 
+        }
+    }//GEN-LAST:event_jBtnAddDirectorActionPerformed
+
+    private void jBtnRemoveDirectorActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jBtnRemoveDirectorActionPerformed
+    {//GEN-HEADEREND:event_jBtnRemoveDirectorActionPerformed
+        // TODO add your handling code here:
+        if (jDirectorList.getSelectedValue() != null)
+        {
+            _directors.remove(jDirectorList.getSelectedValue().toString());
+            _directorModel.remove(jDirectorList.getSelectedIndex()); 
+        }
+    }//GEN-LAST:event_jBtnRemoveDirectorActionPerformed
+
+    private void jRadioSeekIdActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jRadioSeekIdActionPerformed
+    {//GEN-HEADEREND:event_jRadioSeekIdActionPerformed
+        // TODO add your handling code here:
+        jRadioSeekText.setSelected(false);
+    }//GEN-LAST:event_jRadioSeekIdActionPerformed
+
+    private void jRadioSeekTextActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jRadioSeekTextActionPerformed
+    {//GEN-HEADEREND:event_jRadioSeekTextActionPerformed
+        // TODO add your handling code here:
+        jRadioSeekId.setSelected(false);
+    }//GEN-LAST:event_jRadioSeekTextActionPerformed
+
+    private void jCheckYearValActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jCheckYearValActionPerformed
+    {//GEN-HEADEREND:event_jCheckYearValActionPerformed
+        // TODO add your handling code here:
+        jCheckMin.setSelected(false);
+        jCheckMax.setSelected(false);
+    }//GEN-LAST:event_jCheckYearValActionPerformed
+
+    private void jCheckMinActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jCheckMinActionPerformed
+    {//GEN-HEADEREND:event_jCheckMinActionPerformed
+        // TODO add your handling code here:
+        jCheckYearVal.setSelected(false);
+    }//GEN-LAST:event_jCheckMinActionPerformed
+
+    private void jCheckMaxActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_jCheckMaxActionPerformed
+    {//GEN-HEADEREND:event_jCheckMaxActionPerformed
+        // TODO add your handling code here:
+        jCheckYearVal.setSelected(false);
+    }//GEN-LAST:event_jCheckMaxActionPerformed
+
+    private void jResultsListMouseReleased(java.awt.event.MouseEvent evt)//GEN-FIRST:event_jResultsListMouseReleased
+    {//GEN-HEADEREND:event_jResultsListMouseReleased
+        // TODO add your handling code here:
+        String val = (String)jResultsList.getSelectedValue();
+        if (val != null && !val.isEmpty())
+        {
+            Integer movieId = _results.get(val);
+            if (movieId > 0)
+                getMovie(movieId);
+        }
+    }//GEN-LAST:event_jResultsListMouseReleased
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[])
+    {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try
+        {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
+            {
+                if ("Nimbus".equals(info.getName()))
+                {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex)
+        {
+            java.util.logging.Logger.getLogger(Rennequinepolis.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex)
+        {
+            java.util.logging.Logger.getLogger(Rennequinepolis.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex)
+        {
+            java.util.logging.Logger.getLogger(Rennequinepolis.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex)
+        {
+            java.util.logging.Logger.getLogger(Rennequinepolis.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                try
+                {
+                    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                }
+                catch(Exception exc)
+                {}
+                new Rennequinepolis().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JList jActorList;
+    private javax.swing.JTextField jActorText;
+    private javax.swing.JButton jBtnAddActor;
+    private javax.swing.JButton jBtnAddDirector;
+    private javax.swing.JButton jBtnRemoveActor;
+    private javax.swing.JButton jBtnRemoveDirector;
+    private javax.swing.JButton jBtnSearch;
+    private javax.swing.JCheckBox jCheckMax;
+    private javax.swing.JCheckBox jCheckMin;
+    private javax.swing.JCheckBox jCheckYearVal;
+    private javax.swing.JList jDirectorList;
+    private javax.swing.JTextField jDirectorText;
+    private javax.swing.JLabel jErrorLabel;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JRadioButton jRadioSeekId;
+    private javax.swing.JRadioButton jRadioSeekText;
+    private javax.swing.JList jResultsList;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JSpinner jSpinId;
+    private javax.swing.JSpinner jSpinYear;
+    private javax.swing.JSpinner jSpinYearMax;
+    private javax.swing.JSpinner jSpinYearMin;
+    private javax.swing.JTextField jTitleText;
+    // End of variables declaration//GEN-END:variables
+}
